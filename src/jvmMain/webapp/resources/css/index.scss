@@ -1,0 +1,50 @@
+@mixin border-radius($radius: 10px) {
+  -webkit-border-radius: $radius;
+  -moz-border-radius: $radius;
+  border-radius: $radius;
+}
+
+@mixin box-shadow($shadow: 0 0 10px rgba(0, 0, 0, 0.5)) {
+  -webkit-box-shadow: $shadow;
+  -moz-box-shadow: $shadow;
+  box-shadow: $shadow;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-image: url('../images/ducks-2.jpeg');
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+}
+
+#main_page_button {
+  align-self: center;
+  transform: translateX(65%);
+}
+
+#page-footer {
+  h1, h2, h3 {
+    text-align: center;
+    font-family: 'Serif', serif;
+    color: white;
+    text-shadow: black 2px 2px 3px;
+  }
+
+  h1 {
+    font-size: xx-large;
+  }
+
+  h2 {
+    font-size: x-large;
+  }
+
+  h3 {
+    font-size: large;
+  }
+}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ru"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+>
+<head>
+    <link rel="stylesheet" href="resources/css/index.css"/>
+    <script src="resources/js/intro_page.js" type="module"></script>
+    <title>Web lab 3 main page</title>
+</head>
+<h:body>
+    <h:panelGrid columns="1" cellpadding="2">
+        <div id="page-footer">
+            <h1>
+                Козлов Василий Сергеевич P3215
+            </h1>
+            <h2>
+                Лабораторная работа №3
+            </h2>
+            <h2>
+                Вариант 753
+            </h2>
+            <h2 id="clock">
+                Текущее время: 00:00:00
+            </h2>
+        </div>
+        <h:form id="redirect_form">
+            <h:commandButton id="main_page_button" value="Перейти на основную страницу"
+                             action="main?faces-redirect=true"
+                             style="align-self: center; transform: translateX(35%); font-size: large"/>
+        </h:form>
+    </h:panelGrid>
+</h:body>
+</html>

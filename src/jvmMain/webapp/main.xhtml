@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Web lab 3 main page</title>
+    <link rel="stylesheet" href="resources/css/main.css"/>
+    <script src="resources/js/main_page.js" type="module"></script>
+    <script src="resources/js/main_script.js" type="module"></script>
+</h:head>
+<h:body>
+    <h:panelGrid columns="1" cellpadding="2" styleClass="centered-grid">
+        <div id="page-footer">
+            <h1>
+                Козлов Василий Сергеевич P3215
+            </h1>
+            <h2>
+                Лабораторная работа №3
+            </h2>
+            <h2>
+                Вариант 753
+            </h2>
+        </div>
+        <h:form id="redirect_form">
+            <h:commandButton id="redirect_button" value="Перейти на основную страницу"
+                             action="index?faces-redirect=false"
+                             style="align-self: center; transform: translateX(35%); font-size: large"/>
+        </h:form>
+    </h:panelGrid>
+    <div id="russian-image">
+        <img src="resources/images/russian.png" alt="Supports russian language"/>
+    </div>
+    <div class="container">
+        <div class="result-table" id="area-check-results-table">
+            <p:dataTable id="resultTable" value="#{resultTable.results}" var="result">
+                <p:column headerText="X">
+                    <h:outputText value="#{result.x}"/>
+                </p:column>
+                <p:column headerText="Y">
+                    <h:outputText value="#{result.y}"/>
+                </p:column>
+                <p:column headerText="R">
+                    <h:outputText value="#{result.r}"/>
+                </p:column>
+                <p:column headerText="В области?">
+                    <h:outputText value="#{result.inArea ? 'Да' : 'Нет'}"/>
+                </p:column>
+                <p:column headerText="Время исполнения, нс">
+                    <h:outputText value="#{result.executionTimeNs}"/>
+                </p:column>
+            </p:dataTable>
+        </div>
+        <div class="input-area">
+            <div class="jxgbox" id="box1">
+
+            </div>
+            <h:form id="mainForm">
+                <h:panelGrid columns="3" cellpadding="5">
+                    <p:outputLabel class="with-shadow" id="xLabel" value="Значение X: #{checkData.x}"/>
+
+                    <p:slider id="xSlider" for="x" minValue="-3" maxValue="3" step="0.5">
+                        <p:ajax event="slideEnd" listener="#{checkData.onXSliderChange}" update="xLabel submitButton"/>
+                    </p:slider>
+
+                    <p:inputNumber id="x" value="#{checkData.x}" required="true" style="display: none;"
+                                   update="xLabel submitButton" widgetVar="xInput" minValue="-3" maxValue="3"
+                                   step="0.1"/>
+
+                    <h:outputLabel for="y" class="with-shadow" value="Значение Y:"/>
+                    <p:inputNumber id="y" value="#{checkData.y}" required="true" placeholder="Enter Y value"
+                                   minValue="-5" maxValue="3" update="submitButton" widgetVar="yInput"/>
+                    <h:outputLabel value=""/>
+
+                    <p:outputLabel id="rLabel" class="with-shadow" value="Значение R: #{checkData.r}"/>
+
+                    <p:slider id="rSlider" for="r" minValue="1" maxValue="4" step="0.25">
+                        <p:ajax event="slideEnd" listener="#{checkData.onRSliderChange}" update="rLabel submitButton"/>
+                    </p:slider>
+
+                    <p:inputNumber id="r" value="#{checkData.r}" required="true" style="display: none;"
+                                   update="rLabel" onchange="window.onRChange()" widgetVar="rInput"/>
+                </h:panelGrid>
+                <p:commandButton id="submitButton" value="Проверить" action="#{checkData.submit}"
+                                 update="resultTable submitButton" style="margin-right: 20px"
+                                 oncomplete="
+                                 window.customFunction(
+                                    #{checkData.x},
+                                    #{checkData.y},
+                                    #{checkData.r},
+                                    #{checkData.inArea}
+                                  )"/>
+                <p:commandButton id="clearButton" value="Отчистить" action="#{checkData.clearTable}"
+                                 update="resultTable"
+                                 styleClass="ui-button-danger" oncomplete="window.removeAllPoints()"/>
+            </h:form>
+        </div>
+    </div>
+</h:body>
+</html>

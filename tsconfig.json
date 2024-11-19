@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "src/jvmMain/webapp/resources/js",
+    "rootDir": "src/jvmMain/webapp/resources/TS",
+    "target": "es6",
+  },
+  "include": [
+    "src/jvmMain/webapp/resources/TS/**/*.ts"
+  ]
+}
