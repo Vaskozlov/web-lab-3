@@ -4,12 +4,13 @@
       xmlns:h="http://java.sun.com/jsf/html"
 >
 <head>
+    <link rel="stylesheet" href="resources/css/common.css"/>
     <link rel="stylesheet" href="resources/css/index.css"/>
     <script src="resources/js/intro_page.js" type="module"></script>
     <title>Web lab 3 main page</title>
 </head>
 <h:body>
-    <h:panelGrid columns="1" cellpadding="2">
+    <h:panelGrid columns="1" cellpadding="2" styleClass="centered-grid">
         <div id="page-footer">
             <h1>
                 Козлов Василий Сергеевич P3215
@@ -30,5 +31,11 @@
                              style="align-self: center; transform: translateX(35%); font-size: large"/>
         </h:form>
     </h:panelGrid>
+    <div id="russian-image">
+        <img src="resources/images/russian.png" alt="Supports russian language"/>
+    </div>
+    <div id="cool-duck-image">
+        <img src="resources/images/cool-duck.png" alt="Super cool duck"/>
+    </div>
 </h:body>
 </html>

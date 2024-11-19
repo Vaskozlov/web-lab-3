@@ -4,14 +4,19 @@ export let point_check_table_manager = new PointCheckTableManager("resultTable_d
 let main_plot = new Plot("box1");
 const rows = point_check_table_manager.getRows(0);
 for (const [x, y, r, is_in_area] of rows) {
+    if (isNaN(x)) {
+        point_check_table_manager.clearTable(0);
+        break;
+    }
     main_plot.drawPoint(x, y, r, is_in_area ? "green" : "red");
 }
 // @ts-ignore
-window.customFunction = (x, y, r) => {
+onDataSubmit = (x, y, r) => {
     point_check_table_manager.updateFromHtml();
     for (const [x, y, r, is_in_area] of point_check_table_manager.getRows(point_check_table_manager.getRowsCount() - 1)) {
         main_plot.drawPoint(x, y, r, is_in_area ? "green" : "red");
     }
+    new Audio("resources/mp3/duck.mp3").play().then(r => { });
 };
 main_plot.setOnClickFunction(onPlotClick);
 function getR() {
@@ -45,11 +50,11 @@ function onPlotClick(x, y) {
     });
 }
 // @ts-ignore
-window.onRChange = () => {
+onRChange = () => {
     main_plot.redrawPoints(getR());
 };
 // @ts-ignore
-window.removeAllPoints = () => {
+onRemoveAllPoints = () => {
     point_check_table_manager.updateFromHtml();
     point_check_table_manager.clearTable(0);
     main_plot.removeAllPoints();

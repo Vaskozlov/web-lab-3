@@ -12,6 +12,14 @@ repositories {
     mavenCentral()
 }
 
+tasks.register<Exec>("compileCommonScss") {
+    commandLine(
+        "sass",
+        "src/jvmMain/webapp/resources/css/common.scss",
+        "src/jvmMain/webapp/resources/css/common.css"
+    )
+}
+
 tasks.register<Exec>("compileIndexScss") {
     commandLine(
         "sass",
@@ -41,9 +49,12 @@ kotlin {
         withJava()
         
         tasks.war {
+            dependsOn("compileCommonScss")
             dependsOn("compileIndexScss")
             dependsOn("compileMainScss")
             dependsOn("compileTypeScript")
+            dependsOn("jsIntroPageBrowserWebpack")
+            dependsOn("jsMainPageBrowserWebpack")
             from("src/jvmMain/webapp")
         }
     }

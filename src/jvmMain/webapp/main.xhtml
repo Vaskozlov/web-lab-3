@@ -4,7 +4,13 @@
       xmlns:p="http://primefaces.org/ui">
 <h:head>
     <title>Web lab 3 main page</title>
+    <link rel="stylesheet" href="resources/css/common.css"/>
     <link rel="stylesheet" href="resources/css/main.css"/>
+    <script type="application/javascript">
+        var onRChange = null;
+        var onRemoveAllPoints = null;
+        var onDataSubmit = null;
+    </script>
     <script src="resources/js/main_page.js" type="module"></script>
     <script src="resources/js/main_script.js" type="module"></script>
 </h:head>
@@ -22,13 +28,16 @@
             </h2>
         </div>
         <h:form id="redirect_form">
-            <h:commandButton id="redirect_button" value="Перейти на основную страницу"
+            <h:commandButton id="redirect_button" value="Вернуться на главную страницу"
                              action="index?faces-redirect=false"
                              style="align-self: center; transform: translateX(35%); font-size: large"/>
         </h:form>
     </h:panelGrid>
     <div id="russian-image">
         <img src="resources/images/russian.png" alt="Supports russian language"/>
+    </div>
+    <div id="cool-duck-image">
+        <img src="resources/images/cool-duck.png" alt="Super cool duck"/>
     </div>
     <div class="container">
         <div class="result-table" id="area-check-results-table">
@@ -78,12 +87,12 @@
                     </p:slider>
 
                     <p:inputNumber id="r" value="#{checkData.r}" required="true" style="display: none;"
-                                   update="rLabel" onchange="window.onRChange()" widgetVar="rInput"/>
+                                   update="rLabel" onchange="onRChange()" widgetVar="rInput"/>
                 </h:panelGrid>
                 <p:commandButton id="submitButton" value="Проверить" action="#{checkData.submit}"
                                  update="resultTable submitButton" style="margin-right: 20px"
                                  oncomplete="
-                                 window.customFunction(
+                                 onDataSubmit(
                                     #{checkData.x},
                                     #{checkData.y},
                                     #{checkData.r},
@@ -91,7 +100,7 @@
                                   )"/>
                 <p:commandButton id="clearButton" value="Отчистить" action="#{checkData.clearTable}"
                                  update="resultTable"
-                                 styleClass="ui-button-danger" oncomplete="window.removeAllPoints()"/>
+                                 styleClass="ui-button-danger" oncomplete="onRemoveAllPoints()"/>
             </h:form>
         </div>
     </div>

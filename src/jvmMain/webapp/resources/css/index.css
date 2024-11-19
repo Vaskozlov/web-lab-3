@@ -1,35 +1,6 @@
-:root {
-  color-scheme: light;
-}
-
-body {
-  background-image: url("../images/ducks-2.jpeg");
-  background-size: cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0;
-}
-
 #main_page_button {
   align-self: center;
   transform: translateX(65%);
-}
-
-#page-footer h1, #page-footer h2, #page-footer h3 {
-  text-align: center;
-  font-family: "Serif", serif;
-  color: white;
-  text-shadow: black 2px 2px 3px;
-}
-#page-footer h1 {
-  font-size: xx-large;
-}
-#page-footer h2 {
-  font-size: x-large;
-}
-#page-footer h3 {
-  font-size: large;
 }
 
 /*# sourceMappingURL=index.css.map */

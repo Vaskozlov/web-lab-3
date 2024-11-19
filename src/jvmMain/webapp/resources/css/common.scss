@@ -1,0 +1,99 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  background-image: url('../images/ducks-2.jpeg');
+  background-size: cover;
+}
+
+.centered-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#page-footer {
+  h1, h2, h3 {
+    text-align: center;
+    font-family: 'Serif', serif;
+    color: white;
+    text-shadow: black 3px 3px 3px;
+  }
+
+  h1 {
+    font-size: xx-large;
+  }
+
+  h2 {
+    font-size: x-large;
+  }
+
+  h3 {
+    font-size: large;
+  }
+}
+
+@keyframes expandShrink {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes rotateFrom0Deg {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+@keyframes rotateFrom30Deg {
+  from {
+    transform: rotate(30deg);
+  }
+  to {
+    transform: rotate(390deg);
+  }
+}
+
+#russian-image {
+  position: absolute;
+  top: 10px;
+  right: -250px;
+  z-index: 10;
+  animation: expandShrink 1.5s infinite;
+
+  img {
+    width: 50%;
+    height: auto;
+    transform: rotate(30deg);
+    border-radius: 50%;
+    box-shadow: 30px 30px 30px rgba(0, 0, 0, 255);
+  }
+
+  :hover {
+    animation: rotateFrom30Deg 2s infinite;
+  }
+}
+
+#cool-duck-image
+{
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+
+  :hover {
+    animation: rotateFrom0Deg 2s infinite;
+  }
+}

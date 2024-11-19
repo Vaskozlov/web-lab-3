@@ -18,4 +18,5 @@ fun main() {
     pageScope.async {
         startClock()
     }
+    console.log("TEST")
 }
