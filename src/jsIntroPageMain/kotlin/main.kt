@@ -1,10 +1,10 @@
 import kotlinx.browser.document
-import kotlinx.browser.window
-import kotlinx.coroutines.*
-import org.w3c.dom.HTMLButtonElement
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 
 val pageScope = CoroutineScope(Dispatchers.Default)
-
 val clock = document.getElementById("clock")!!
 
 suspend fun startClock() {
@@ -18,5 +18,6 @@ fun main() {
     pageScope.async {
         startClock()
     }
-    console.log("TEST")
+    
+    console.log("Async clock started")
 }

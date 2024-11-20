@@ -14,17 +14,17 @@ export class PointCheckTableManager extends HtmlTableManager {
         for (let i = from; i < this.table.rows.length; i++) {
             const row = this.table.rows[i];
 
-            const trimmed_elements = [...row.cells]
+            const trimmedElements = [...row.cells]
                 .map(cell => cell.innerText.trim())
 
-            const values = trimmed_elements
+            const values = trimmedElements
                 .slice(0, 3)
                 .map(parseFloat);
 
             const [x, y, r] = values;
-            const is_in_area = trimmed_elements[3] === "Да";
+            const isInArea = trimmedElements[3] === "Да";
 
-            yield [x, y, r, is_in_area];
+            yield [x, y, r, isInArea];
         }
     }
 }

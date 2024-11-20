@@ -29,7 +29,6 @@ class DatabaseDriver(url: String, login: String?, password: String?) : AutoClose
     fun executeQuery(@Language("SQL") query: String, arguments: List<Any?> = emptyList()) = sequence {
         prepareStatement(query, arguments).use {
             val result = it.executeQuery()
-            println(it)
             
             while (result.next()) {
                 yield(result)
@@ -37,11 +36,8 @@ class DatabaseDriver(url: String, login: String?, password: String?) : AutoClose
         }
     }
     
-    fun executeUpdate(@Language("SQL") query: String, arguments: List<Any?> = emptyList<Any>()): Int {
-        return prepareStatement(query, arguments).executeUpdate()
-    }
+    fun executeUpdate(@Language("SQL") query: String, arguments: List<Any?> = emptyList<Any>()): Int =
+        prepareStatement(query, arguments).executeUpdate()
     
-    override fun close() {
-        connection.close()
-    }
+    override fun close() = connection.close()
 }

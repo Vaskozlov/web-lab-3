@@ -2,7 +2,7 @@
 import JXG from 'https://cdn.jsdelivr.net/npm/jsxgraph/distrib/jsxgraphcore.mjs';
 
 export class Plot {
-    private static x_axis_config = {
+    private static xAxisConfig = {
         name: 'x',
         withLabel: true,
         label: {
@@ -17,7 +17,7 @@ export class Plot {
         }
     };
 
-    private static y_axis_config = {
+    private static yAxisConfig = {
         name: 'y',
         withLabel: true,
         label: {
@@ -33,7 +33,7 @@ export class Plot {
     };
 
     private readonly board: JXG.JSXGraph;
-    private readonly created_points: any[] = [];
+    private readonly createdPoints: any[] = [];
 
     public constructor(elementId: String) {
         this.board = JXG.JSXGraph.initBoard(elementId, {
@@ -47,13 +47,13 @@ export class Plot {
             },
             axis: true,
             defaultAxes: {
-                x: Plot.x_axis_config,
-                y: Plot.y_axis_config
+                x: Plot.xAxisConfig,
+                y: Plot.yAxisConfig
             },
         });
 
         this.board.highlightInfobox = function (x: any, y: any, el: any) {
-            this.infobox.setText(`(${x}R, ${y}R, R=${el.visProp.radius})`);
+            this.infobox.setText(`(${x}R, ${y}R, R=${el.visProp.displayedRadius})`);
         };
 
         this.drawAreas();
@@ -70,9 +70,10 @@ export class Plot {
         return this.board.getUsrCoordsOfMouse(event);
     }
 
-    public drawPoint(x: number, y: number, r: number, color: string): void {
-        console.log(x, y, r, color);
-        this.created_points.push(
+    public drawPoint(x: number, y: number, r: number, color: string, realR: number = null): void {
+        realR = realR === null ? r : realR;
+
+        this.createdPoints.push(
             this.board.create('point', [x / r, y / r], {
                 size: 3.5,
                 strokeColor: color,
@@ -83,25 +84,27 @@ export class Plot {
                 showInfobox: true,
                 infoboxDigits: 2,
                 radius: r,
+                displayedRadius: realR
             }));
     }
 
-    public redrawPoints(new_r: number) {
+    public redrawPoints(newR: number) {
 
-        const points_copy = this.created_points.slice();
-        this.created_points.length = 0;
+        const pointsCopy = this.createdPoints.slice();
+        this.createdPoints.length = 0;
 
         this.board.suspendUpdate();
 
-        for (const point of points_copy) {
+        for (const point of pointsCopy) {
             this.board.removeObject(point);
             const [_, x, y] = point.coords.usrCoords;
 
             this.drawPoint(
                 x * point.visProp.radius,
                 y * point.visProp.radius,
-                new_r,
-                point.visProp.fillcolor
+                newR,
+                point.visProp.fillcolor,
+                point.visProp.displayedRadius
             );
         }
 
@@ -111,8 +114,8 @@ export class Plot {
     public removeAllPoints(): void {
         this.board.suspendUpdate();
 
-        this.created_points.forEach(point => this.board.removeObject(point));
-        this.created_points.length = 0;
+        this.createdPoints.forEach(point => this.board.removeObject(point));
+        this.createdPoints.length = 0;
 
         this.board.unsuspendUpdate();
     }

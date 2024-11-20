@@ -15,7 +15,9 @@ class Database(private val driver: DatabaseDriver) {
         RETURNING ID;
     """
     
-    private val loadCheckDataQuery = "SELECT * FROM CHECKS;";
+    private val loadCheckDataQuery = "SELECT * FROM CHECKS;"
+    
+    private val clearTableQuery = "TRUNCATE TABLE CHECKS;"
     
     fun saveCheckResult(checkData: CheckData) {
         checkData.id = driver.executeQuery(
@@ -31,11 +33,10 @@ class Database(private val driver: DatabaseDriver) {
     }
     
     fun loadAllCheckResults() = driver.executeQuery(
-        loadCheckDataQuery,
-        emptyList()
+        loadCheckDataQuery
     )
     
-    fun clearTable() {
-        driver.executeUpdate("TRUNCATE TABLE CHECKS;", emptyList())
-    }
+    fun clearTable() = driver.executeUpdate(
+        clearTableQuery
+    )
 }

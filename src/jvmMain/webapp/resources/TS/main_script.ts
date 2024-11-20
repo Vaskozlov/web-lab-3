@@ -1,30 +1,39 @@
 import {Plot} from "./plot.js";
 import {PointCheckTableManager} from "./table/point_check_table_manager.js";
 
+let main_plot = new Plot("box1");
 export let point_check_table_manager = new PointCheckTableManager("resultTable_data");
 
-let main_plot = new Plot("box1");
+function getQuack() {
+    return new Audio("resources/mp3/duck.mp3");
+}
 
-const rows = point_check_table_manager.getRows(0);
+function drawAllPointsFromTable() {
+    const rows = point_check_table_manager.getRows(0);
 
-for (const [x, y, r, is_in_area] of rows) {
-    if (isNaN(x)) {
-        point_check_table_manager.clearTable(0);
-        break;
+    for (const [x, y, r, isInArea] of rows) {
+        if (isNaN(x)) {
+            point_check_table_manager.clearTable(0);
+            return;
+        }
+
+        main_plot.drawPoint(x, y, r, isInArea ? "green" : "red");
     }
 
-    main_plot.drawPoint(x, y, r, is_in_area ? "green" : "red");
+    main_plot.redrawPoints(getR());
 }
 
 // @ts-ignore
-onDataSubmit = (x: number, y: number, r: number) => {
+onDataSubmit = () => {
     point_check_table_manager.updateFromHtml();
+    const rows = point_check_table_manager.getRows(point_check_table_manager.getRowsCount() - 1);
 
-    for (const [x, y, r, is_in_area] of point_check_table_manager.getRows(point_check_table_manager.getRowsCount() - 1)) {
-        main_plot.drawPoint(x, y, r, is_in_area ? "green" : "red");
+    for (const [x, y, r, isInArea] of rows) {
+        main_plot.drawPoint(x, y, r, isInArea ? "green" : "red");
     }
 
-    new Audio("resources/mp3/duck.mp3").play().then(r => {});
+    getQuack().play().then(() => {
+    });
 }
 
 main_plot.setOnClickFunction(onPlotClick);
@@ -41,11 +50,7 @@ function onPlotClick(x: number, y: number) {
     x *= r;
     y *= r;
 
-    if (Math.abs(x) > 3) {
-        return;
-    }
-
-    if (y > 3 || y < -5) {
+    if (Math.abs(x) > 3 || y > 3 || y < -5) {
         return;
     }
 
@@ -79,3 +84,8 @@ onRemoveAllPoints = () => {
     point_check_table_manager.clearTable(0);
     main_plot.removeAllPoints();
 }
+
+// @ts-ignore
+$(document).ready(() => {
+    drawAllPointsFromTable();
+});
