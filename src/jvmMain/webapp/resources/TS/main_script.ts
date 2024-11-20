@@ -12,7 +12,6 @@ function playQuack() {
     try {
         getQuackAudio().play().then();
     } catch (e) {
-
     }
 }
 
@@ -52,7 +51,6 @@ function getR() {
 }
 
 function onPlotClick(x: number, y: number) {
-    let submit_button = document.getElementById("mainForm:submitButton") as HTMLButtonElement;
     const r = getR();
     x *= r;
     y *= r;
@@ -70,6 +68,7 @@ function onPlotClick(x: number, y: number) {
     // @ts-ignore
     PrimeFaces.widgets.yInput.setValue(y.toString())
 
+    let submit_button = document.getElementById("mainForm:submitButton") as HTMLButtonElement;
     submit_button.click();
 
     // @ts-ignore

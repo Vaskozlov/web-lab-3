@@ -84,7 +84,7 @@ export class Plot {
                 showInfobox: true,
                 infoboxDigits: 2,
                 radius: r,
-                displayedRadius: realR
+                displayedradius: realR
             }));
     }
 
@@ -104,7 +104,7 @@ export class Plot {
                 y * point.visProp.radius,
                 newR,
                 point.visProp.fillcolor,
-                point.visProp.displayedRadius
+                point.visProp.displayedradius
             );
         }
 
