@@ -45,3 +45,5 @@ bin/
 .DS_Store
 
 src/jvmMain/webapp/resources/js
+src/jvmMain/webapp/resources/css/*.css
+src/jvmMain/webapp/resources/css/*.map
