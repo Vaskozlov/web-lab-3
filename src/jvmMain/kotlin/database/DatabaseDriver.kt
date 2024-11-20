@@ -76,7 +76,7 @@ class DatabaseDriver(
     
     fun executeUpdate(statement: PreparedStatement): Int = statement.executeUpdate()
     
-    fun <T> runInTransaction(block: (DatabaseDriver) -> T): T? {
+    fun <T> runInTransaction(block: (DatabaseDriver) -> T): T {
         beginTransaction()
         
         try {
@@ -87,8 +87,6 @@ class DatabaseDriver(
             rollbackTransaction()
             throw e
         }
-        
-        return null
     }
     
     override fun close() {

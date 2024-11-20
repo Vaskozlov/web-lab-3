@@ -45,17 +45,15 @@ class Database(private val driver: DatabaseDriver) : AutoCloseable {
             )
         )
         
-        driver.runInTransaction{
+        driver.runInTransaction {
             checkData.id = driver.executeQuery(statement).first().getLong("ID")
         }
     }
     
     fun loadAllCheckResults() =
-        driver.runInTransaction {
-            it.executeQuery(loadCheckDataQuery)
-        }
-            ?.map(::constructCheckData)
-            ?.toMutableList() ?: mutableListOf()
+        driver.runInTransaction { it.executeQuery(loadCheckDataQuery) }
+            .map(::constructCheckData)
+            .toMutableList()
     
     fun clearTable() = driver.executeUpdate(clearTableQuery)
     
