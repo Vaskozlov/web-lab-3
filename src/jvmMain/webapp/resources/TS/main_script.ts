@@ -4,8 +4,16 @@ import {PointCheckTableManager} from "./table/point_check_table_manager.js";
 let main_plot = new Plot("box1");
 export let point_check_table_manager = new PointCheckTableManager("resultTable_data");
 
-function getQuack() {
-    return new Audio("resources/mp3/duck.mp3");
+function getQuackAudio() {
+    return new Audio("resources/mp3/quack.mp3");
+}
+
+function playQuack() {
+    try {
+        getQuackAudio().play().then();
+    } catch (e) {
+
+    }
 }
 
 function drawAllPointsFromTable() {
@@ -32,8 +40,7 @@ onDataSubmit = () => {
         main_plot.drawPoint(x, y, r, isInArea ? "green" : "red");
     }
 
-    getQuack().play().then(() => {
-    });
+    playQuack();
 }
 
 main_plot.setOnClickFunction(onPlotClick);

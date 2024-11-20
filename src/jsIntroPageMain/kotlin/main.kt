@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
-val pageScope = CoroutineScope(Dispatchers.Default)
 val clock = document.getElementById("clock")!!
+val pageCoroutineScope = CoroutineScope(Dispatchers.Default)
 
 suspend fun startClock() {
     while (true) {
@@ -15,7 +15,7 @@ suspend fun startClock() {
 }
 
 fun main() {
-    pageScope.async {
+    pageCoroutineScope.async {
         startClock()
     }
     

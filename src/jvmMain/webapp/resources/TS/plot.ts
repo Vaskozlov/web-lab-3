@@ -53,7 +53,7 @@ export class Plot {
         });
 
         this.board.highlightInfobox = function (x: any, y: any, el: any) {
-            this.infobox.setText(`(${x}R, ${y}R, R=${el.visProp.displayedRadius})`);
+            this.infobox.setText(`(${x}R, ${y}R, R=${el.visProp.displayedradius})`);
         };
 
         this.drawAreas();

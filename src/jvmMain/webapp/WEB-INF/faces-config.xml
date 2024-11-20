@@ -3,18 +3,6 @@
               xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
                                   http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd"
               version="2.2">
-    <managed-bean>
-        <managed-bean-name>checkData</managed-bean-name>
-        <managed-bean-class>org.vaskozlov.lab3.bean.CheckData</managed-bean-class>
-        <managed-bean-scope>session</managed-bean-scope>
-    </managed-bean>
-
-    <managed-bean>
-        <managed-bean-name>resultTable</managed-bean-name>
-        <managed-bean-class>org.vaskozlov.lab3.bean.ResultTable</managed-bean-class>
-        <managed-bean-scope>application</managed-bean-scope>
-    </managed-bean>
-
     <navigation-rule>
         <from-view-id>/index.xhtml</from-view-id>
         <navigation-case>

@@ -59,11 +59,9 @@ class CheckData : Serializable {
     
     fun onXSliderChange(event: SlideEndEvent?) {
         x = event!!.value
-        println("Slider value changed: $x")
     }
     
     fun onRSliderChange(event: SlideEndEvent?) {
         r = event!!.value
-        println("Slider value changed: $r")
     }
 }
