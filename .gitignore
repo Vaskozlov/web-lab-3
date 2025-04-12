@@ -47,3 +47,7 @@ bin/
 src/jvmMain/webapp/resources/js
 src/jvmMain/webapp/resources/css/*.css
 src/jvmMain/webapp/resources/css/*.map
+
+lib
+build-ant
+build

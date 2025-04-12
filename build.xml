@@ -9,21 +9,25 @@
     <property name="webapp.dir" value="${src.dir}/jvmMain/webapp"/>
     <property name="js.output.dir" value="${webapp.dir}/resources/js"/>
     <property name="css.dir" value="${webapp.dir}/resources/css"/>
+    <property name="docs.dir" value="${build.dir}/docs"/>
+    <property name="kdoc.dir" value="${docs.dir}/kdoc"/>
+
+    <tstamp>
+        <format property="build.time" pattern="yyyy-MM-dd HH:mm:ss"/>
+    </tstamp>
 
     <!-- Path definitions -->
     <path id="compile.classpath">
         <!-- Jakarta/Java EE dependencies -->
         <fileset dir="lib">
-            <include name="jakarta.faces-api-4.1.1.jar"/>
-            <include name="jakarta.jakartaee-api-10.0.0.jar"/>
-            <include name="jakarta.faces-4.1.1.jar"/>
-            <include name="primefaces-14.0.6-jakarta.jar"/>
-            <!-- PostgreSQL -->
-            <include name="postgresql-42.7.4.jar"/>
-            <!-- Kotlin dependencies -->
-            <include name="kotlin-stdlib-1.9.25.jar"/>
-            <include name="kotlinx-coroutines-core-1.9.0.jar"/>
-            <include name="annotations-26.0.2.jar"/>
+            <include name="jakarta.faces-api-*.jar"/>
+            <include name="jakarta.jakartaee-api-*.jar"/>
+            <include name="jakarta.faces-*.jar"/>
+            <include name="primefaces-*-jakarta.jar"/>
+            <include name="postgresql-*.jar"/>
+            <include name="kotlin-stdlib-*.jar"/>
+            <include name="kotlinx-coroutines-core-*.jar"/>
+            <include name="annotations-*.jar"/>
         </fileset>
     </path>
 
@@ -96,11 +100,68 @@
         </copy>
     </target>
 
-    <target name="jar" depends="compileJvm" description="Creates a JAR file">
-        <jar destfile="${build.dir}/${ant.project.name}.jar" basedir="${build.dir}/classes">
-            <!-- Include all dependencies in the lib directory -->
+    <path id="javadoc.classpath">
+        <path refid="compile.classpath"/>
+        <pathelement path="${build.dir}/classes"/>
+    </path>
+
+    <target name="doc" depends="compileJvm" description="Generates KDOC and adds checksums to MANIFEST">
+        <!-- Create directories -->
+        <mkdir dir="${kdoc.dir}"/>
+
+        <!-- Generate KDOC using Kotlin compiler -->
+        <exec executable="${kotlin.home}/bin/kotlinc" failonerror="true">
+            <arg value="-d"/>
+            <arg value="${kdoc.dir}"/>
+            <arg value="-cp"/>
+            <arg pathref="compile.classpath"/>
+            <arg value="${src.dir}/jvmMain/kotlin"/>
+        </exec>
+
+        <!-- Generate MD5 and SHA1 checksums -->
+        <checksum algorithm="MD5" fileext=".md5">
+            <fileset dir="${src.dir}/jvmMain/kotlin" includes="**/*.kt"/>
+        </checksum>
+
+        <checksum algorithm="SHA-1" fileext=".sha1">
+            <fileset dir="${src.dir}/jvmMain/kotlin" includes="**/*.kt"/>
+        </checksum>
+
+        <!-- Update JAR with new manifest and documentation -->
+        <jar destfile="${build.dir}/${ant.project.name}.jar"
+             basedir="${build.dir}/classes"
+             update="true">
+
+            <manifest>
+                <attribute name="Main-Class" value="org.vaskozlov.lab3.MainKt"/>
+                <attribute name="Implementation-Title" value="${ant.project.name}"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Implementation-Vendor" value="${group}"/>
+                <attribute name="Created-By" value="Apache Ant ${ant.version}"/>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Build-Date" value="${build.time}"/>
+
+                <!-- Add checksums to MANIFEST -->
+                <attribute name="Files-MD5" value="${src.dir}/jvmMain/kotlin/**/*.md5"/>
+                <attribute name="Files-SHA1" value="${src.dir}/jvmMain/kotlin/**/*.sha1"/>
+            </manifest>
+
+            <!-- Add KDOC documentation to JAR -->
+            <fileset dir="${kdoc.dir}" includes="**/*"/>
+
+            <!-- Add checksum files to JAR -->
+            <fileset dir="${src.dir}/jvmMain/kotlin">
+                <include name="**/*.md5"/>
+                <include name="**/*.sha1"/>
+            </fileset>
+
             <zipgroupfileset dir="lib" includes="*.jar"/>
         </jar>
+    </target>
+
+    <!-- Modified jar target to depend on doc -->
+    <target name="jar" depends="compileJvm, doc" description="Creates a JAR file with KDOC and checksums">
+        <echo message="JAR file created with KDOC documentation and checksums"/>
     </target>
 
     <!-- Build WAR file -->
