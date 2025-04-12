@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="web-lab3" default="war" basedir=".">
+    <property name="kotlin.home" value="/Volumes/ramdisk/Downloads/kotlinc"/>
+    <property name="kotlin.ant.jar" value="${kotlin.home}/lib/kotlin-ant.jar"/>
+    <property name="version" value="1.0"/>
+    <property name="group" value="org.vaskozlov.lab3"/>
+    <property name="src.dir" value="src"/>
+    <property name="build.dir" value="build-ant"/>
+    <property name="webapp.dir" value="${src.dir}/jvmMain/webapp"/>
+    <property name="js.output.dir" value="${webapp.dir}/resources/js"/>
+    <property name="css.dir" value="${webapp.dir}/resources/css"/>
+
+    <!-- Path definitions -->
+    <path id="compile.classpath">
+        <!-- Jakarta/Java EE dependencies -->
+        <fileset dir="lib">
+            <include name="jakarta.faces-api-4.1.1.jar"/>
+            <include name="jakarta.jakartaee-api-10.0.0.jar"/>
+            <include name="jakarta.faces-4.1.1.jar"/>
+            <include name="primefaces-14.0.6-jakarta.jar"/>
+            <!-- PostgreSQL -->
+            <include name="postgresql-42.7.4.jar"/>
+            <!-- Kotlin dependencies -->
+            <include name="kotlin-stdlib-1.9.25.jar"/>
+            <include name="kotlinx-coroutines-core-1.9.0.jar"/>
+            <include name="annotations-26.0.2.jar"/>
+        </fileset>
+    </path>
+
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.dir}/classes"/>
+        <mkdir dir="${build.dir}/webapp"/>
+        <mkdir dir="${js.output.dir}"/>
+    </target>
+
+    <!-- SCSS compilation targets -->
+    <target name="compileCommonScss">
+        <exec executable="sass">
+            <arg value="${css.dir}/common.scss"/>
+            <arg value="${css.dir}/common.css"/>
+        </exec>
+    </target>
+
+    <target name="compileIndexScss">
+        <exec executable="sass">
+            <arg value="${css.dir}/index.scss"/>
+            <arg value="${css.dir}/index.css"/>
+        </exec>
+    </target>
+
+    <target name="compileMainScss">
+        <exec executable="sass">
+            <arg value="${css.dir}/main.scss"/>
+            <arg value="${css.dir}/main.css"/>
+        </exec>
+    </target>
+
+    <!-- TypeScript compilation -->
+    <target name="compileTypeScript">
+        <mkdir dir="${build.dir}/js/packages/web-lab3-js-main-page/kotlin"/>
+        <exec executable="npx">
+            <arg value="tsc"/>
+            <arg value="--project"/>
+            <arg value="tsconfig.json"/>
+        </exec>
+    </target>
+
+    <!-- Note: The Kotlin Multiplatform JS compilation would need to be handled separately -->
+    <!-- This is a placeholder - you would need to call the Kotlin compiler directly -->
+    <target name="compileJsIntroPage">
+        <echo message="This would compile the JS intro page using Kotlin/JS compiler"/>
+        <!-- Actual implementation would require calling kotlinc-js -->
+    </target>
+
+    <target name="compileJsMainPage">
+        <echo message="This would compile the JS main page using Kotlin/JS compiler"/>
+        <!-- Actual implementation would require calling kotlinc-js -->
+    </target>
+
+    <!-- Compile JVM Kotlin code -->
+    <target name="compileJvm" depends="init">
+        <taskdef resource="org/jetbrains/kotlin/ant/antlib.xml"
+                 classpath="${kotlin.ant.jar}"/>
+        <!-- Compile Kotlin sources -->
+        <kotlinc src="${src.dir}/jvmMain/kotlin"
+                 output="${build.dir}/classes"
+                 classpathref="compile.classpath">
+            <!-- Include Java sources if any -->
+            <src path="${src.dir}/jvmMain/java"/>
+        </kotlinc>
+
+        <!-- Copy resources -->
+        <copy todir="${build.dir}/classes">
+            <fileset dir="${src.dir}/jvmMain/resources" includes="**/*"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="compileJvm" description="Creates a JAR file">
+        <jar destfile="${build.dir}/${ant.project.name}.jar" basedir="${build.dir}/classes">
+            <!-- Include all dependencies in the lib directory -->
+            <zipgroupfileset dir="lib" includes="*.jar"/>
+        </jar>
+    </target>
+
+    <!-- Build WAR file -->
+    <target name="war" depends="compileCommonScss, compileIndexScss, compileMainScss, compileTypeScript, compileJsIntroPage, compileJsMainPage, compileJvm">
+        <war destfile="${build.dir}/${ant.project.name}.war" webxml="${webapp.dir}/WEB-INF/web.xml">
+            <fileset dir="${webapp.dir}">
+                <exclude name="WEB-INF/web.xml"/>
+            </fileset>
+            <classes dir="${build.dir}/classes"/>
+            <lib dir="lib"/>
+        </war>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+</project>
