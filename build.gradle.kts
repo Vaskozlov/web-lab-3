@@ -1,6 +1,7 @@
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.implementation
 import org.gradle.kotlin.dsl.kotlin
+import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     kotlin("multiplatform") version "2.0.21"
@@ -190,4 +191,92 @@ tasks.withType<Test> {
         junitXml.required.set(true) // Enable XML test reports
         junitXml.outputLocation.set(file("${layout.buildDirectory}/test-results")) // Set the output directory
     }
+}
+
+tasks.register("alt") {
+    group = "build"
+    description = "Creates an alternative version of the program with renamed variables and classes and packages it into a JAR"
+    
+    // Define replacement patterns
+    val replacements = mapOf(
+        "org\\.vaskozlov\\.lab3" to "org\\.vaskozlov\\.lab3\\.alt",
+        "MainKt" to "AltMainKt",
+        "lab3" to "lab3alt",
+        "Database" to "DatabaseAlt"
+        // Add more replacement patterns as needed
+    )
+    
+    // Declare inputs and outputs for proper incremental builds
+    inputs.files(fileTree("src").filter { it.isFile })
+    inputs.property("replacements", replacements)
+    val outputJar = layout.buildDirectory.file("libs/${project.name}-${project.version}-alt.jar")
+    outputs.file(outputJar)
+    
+    doLast {
+        // 1. Create temporary directory structure
+        val altDir = file("$buildDir/alt")
+        altDir.deleteRecursively()
+        altDir.mkdirs()
+        
+        // 2. Copy and transform source files
+        copy {
+            from("src")
+            into("$altDir/src")
+            filter { line ->
+                var result = line
+                replacements.forEach { (from, to) ->
+                    result = result.replace(from.toRegex(), to)
+                }
+                result
+            }
+        }
+        
+       copy{
+           from("tsconfig.json")
+           into(altDir)
+       }
+        
+        // 3. Create settings file for alternative build
+        file("$altDir/settings.gradle.kts").writeText("""
+            rootProject.name = "${project.name}-alt"
+        """.trimIndent())
+        
+        // 4. Create build file for alternative build
+        file("$altDir/build.gradle.kts").writeText(buildFile.readText().replace(
+            "org.vaskozlov.lab3", "org.vaskozlov.lab3.alt"
+        ))
+        
+        // 5. Copy other necessary files (like gradle.properties if exists)
+        if (file("gradle.properties").exists()) {
+            copy {
+                from("gradle.properties")
+                into(altDir)
+            }
+        }
+        
+        // 6. Build the alternative version
+        exec {
+            workingDir = altDir
+            commandLine = listOf(
+                "${project.rootDir}/gradlew",
+                "build",
+                "--no-daemon"
+            )
+        }
+        
+        // 7. Copy the resulting JAR
+        copy {
+            from("$altDir/build/libs") {
+                include("*.jar")
+            }
+            into("$buildDir/libs")
+            rename { fileName ->
+                fileName.replace(".jar", "-alt.jar")
+            }
+        }
+        
+        println("Alternative version built: ${outputJar.get().asFile}")
+    }
+    
+    dependsOn("jar")
 }
