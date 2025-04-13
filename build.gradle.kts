@@ -1,7 +1,4 @@
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.implementation
-import org.gradle.kotlin.dsl.kotlin
-import org.apache.tools.ant.filters.ReplaceTokens
+import org.apache.tools.ant.filters.EscapeUnicode
 
 plugins {
     kotlin("multiplatform") version "2.0.21"
@@ -25,6 +22,7 @@ repositories {
 buildscript {
     dependencies {
         classpath("xerces:xercesImpl:2.12.2")
+        classpath("org.apache.ant:ant:1.10.12")
     }
 }
 
@@ -195,7 +193,8 @@ tasks.withType<Test> {
 
 tasks.register("alt") {
     group = "build"
-    description = "Creates an alternative version of the program with renamed variables and classes and packages it into a JAR"
+    description =
+        "Creates an alternative version of the program with renamed variables and classes and packages it into a JAR"
     
     // Define replacement patterns
     val replacements = mapOf(
@@ -231,20 +230,24 @@ tasks.register("alt") {
             }
         }
         
-       copy{
-           from("tsconfig.json")
-           into(altDir)
-       }
+        copy {
+            from("tsconfig.json")
+            into(altDir)
+        }
         
         // 3. Create settings file for alternative build
-        file("$altDir/settings.gradle.kts").writeText("""
+        file("$altDir/settings.gradle.kts").writeText(
+            """
             rootProject.name = "${project.name}-alt"
-        """.trimIndent())
+        """.trimIndent()
+        )
         
         // 4. Create build file for alternative build
-        file("$altDir/build.gradle.kts").writeText(buildFile.readText().replace(
-            "org.vaskozlov.lab3", "org.vaskozlov.lab3.alt"
-        ))
+        file("$altDir/build.gradle.kts").writeText(
+            buildFile.readText().replace(
+                "org.vaskozlov.lab3", "org.vaskozlov.lab3.alt"
+            )
+        )
         
         // 5. Copy other necessary files (like gradle.properties if exists)
         if (file("gradle.properties").exists()) {
@@ -279,4 +282,38 @@ tasks.register("alt") {
     }
     
     dependsOn("jar")
+}
+
+tasks.register("native2ascii") {
+    group = "localization"
+    description = "Converts Unicode to ASCII escapes (pure Kotlin)"
+    
+    val srcDir = file("src/jvmMain/resources")
+    val destDir = file("$buildDir/native2ascii")
+    
+    inputs.dir(srcDir)
+    outputs.dir(destDir)
+    
+    doLast {
+        fun String.escapeUnicode(): String {
+            return map { char ->
+                if (char.code > 127) "\\u${char.code.toString(16).padStart(4, '0')}"
+                else char.toString()
+            }.joinToString("")
+        }
+        
+        destDir.mkdirs()
+        copy {
+            from(srcDir)
+            into(destDir)
+            include("**/*.properties")
+            filter { line -> line.escapeUnicode() }
+            filteringCharset = "UTF-8"
+        }
+        copy {
+            from(srcDir)
+            into(destDir)
+            exclude("**/*.properties")
+        }
+    }
 }
