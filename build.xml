@@ -190,18 +190,23 @@
 
     <target name="compile" depends="compileJvm"/>
 
-    <target name="test" depends="build">
+    <target name="compileTests" depends="compileJvm">
+        <kotlinc src="${src.dir}/jvmTest/kotlin"
+                output="${build.dir}/classes-test"
+                classpathref="compile.classpath"/>
+    </target>
+
+    <target name="test" depends="compileTests">
         <mkdir dir="${build.dir}/test-results"/>
-        <!-- <taskdef name="kotlinc" classname="org.jetbrains.kotlin.ant.KotlinAntTask" classpath="${kotlin.ant.jar}"/> -->
         <junit printsummary="yes" haltonfailure="yes">
             <classpath>
                 <path refid="compile.classpath"/>
-                <pathelement path="${build.dir}/classes"/>
+                <pathelement path="${build.dir}/classes-test"/>
             </classpath>
             <formatter type="xml"/>
             <batchtest todir="${build.dir}/test-results">
-                <fileset dir="src/jvmTest/kotlin">
-                    <include name="**/*Test.kt"/>
+                <fileset dir="${build.dir}/classes-test">
+                    <include name="**/*Test.class"/>
                 </fileset>
             </batchtest>
         </junit>
@@ -259,16 +264,54 @@
     </target>
 
     <target name="team">
+        <!-- Создаём временную папку для работы -->
         <mkdir dir="${build.dir}/team"/>
+
+        <!-- Клонируем репозиторий -->
         <exec executable="git">
-            <arg line="clone https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
+            <arg line="clone --branch ant https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
         </exec>
+
+        <exec executable="chmod">
+            <arg line="+x install-libs.sh"/>
+        </exec>
+
+        <exec executable="./install-libs.sh"></exec>
+
+        <exec executable="./gradlew">
+            <arg line="init"/>
+        </exec>
+
+        <!-- Обрабатываем первую ревизию HEAD~1 -->
+        <mkdir dir="${build.dir}/team/out1"/>
         <exec dir="${build.dir}/team/repo" executable="git">
             <arg line="checkout HEAD~1"/>
         </exec>
-        <!-- Optional: repeat with HEAD~2 -->
-        <!-- Then build and archive -->
+        <exec dir="${build.dir}/team/repo" executable="ant">
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc jar"/>
+        </exec>
+        <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out1/web-lab3-head-1.jar"/>
+
+        <!-- Обрабатываем вторую ревизию HEAD~2 -->
+        <mkdir dir="${build.dir}/team/out2"/>
+        <exec dir="${build.dir}/team/repo" executable="git">
+            <arg line="checkout HEAD~2"/>
+        </exec>
+        <exec dir="${build.dir}/team/repo" executable="ant">
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc jar"/>
+        </exec>
+        <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out2/web-lab3-head-2.jar"/>
+
+        <!-- Упаковка в zip -->
+        <mkdir dir="${build.dir}/team/final"/>
+        <zip destfile="${build.dir}/team/final/team-builds.zip">
+            <fileset dir="${build.dir}/team/out1" includes="**/*.jar"/>
+            <fileset dir="${build.dir}/team/out2" includes="**/*.jar"/>
+        </zip>
+
+        <echo message="Готово! Архив находится по пути: ${build.dir}/team/final/team-builds.zip"/>
     </target>
+
 
     <target name="env">
         <property file="env.properties"/>
