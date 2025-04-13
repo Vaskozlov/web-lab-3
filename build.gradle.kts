@@ -48,6 +48,19 @@ kotlin {
     jvm {
         withJava()
         
+        tasks.named<Jar>("jvmJar") {
+            manifest {
+                attributes(
+                    "Main-Class" to "org.vaskozlov.lab3.MainKt",
+                    "Implementation-Title" to project.name,
+                    "Implementation-Version" to project.version,
+                    "Created-By" to System.getProperty("java.version"),
+                    "Built-By" to System.getProperty("user.name"),
+                    "Build-Jdk" to System.getProperty("java.version"),
+                )
+            }
+        }
+        
         tasks.war {
             dependsOn("compileCommonScss")
             dependsOn("compileIndexScss")
