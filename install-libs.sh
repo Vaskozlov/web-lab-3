@@ -10,3 +10,7 @@ curl https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.25/ko
 curl https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.9.0/kotlinx-coroutines-core-1.9.0.jar > lib/kotlinx-coroutines-core-1.9.0.jar
 wget https://github.com/JetBrains/kotlin/releases/download/v2.1.20/kotlin-compiler-2.1.20.zip
 unzip kotlin-compiler-2.1.20.zip -d kotlin-compiler
+
+curl https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar > lib/junit-4.13.2.jar
+curl https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar > lib/hamcrest-core-1.3.jar
+curl https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-test-junit/2.0.21/kotlin-test-junit-2.0.21.jar > lib/kotlin-test-junit-2.0.21.jar

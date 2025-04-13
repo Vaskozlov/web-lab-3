@@ -28,6 +28,11 @@
             <include name="kotlin-stdlib-*.jar"/>
             <include name="kotlinx-coroutines-core-*.jar"/>
             <include name="annotations-*.jar"/>
+
+            <!-- JUnit and Kotlin test -->
+            <include name="junit-*.jar"/>
+            <include name="hamcrest-core-*.jar"/>
+            <include name="kotlin-test-junit-*.jar"/>
         </fileset>
     </path>
 
@@ -182,4 +187,111 @@
     <target name="clean">
         <delete dir="${build.dir}"/>
     </target>
+
+    <target name="compile" depends="compileJvm"/>
+
+    <target name="test" depends="build">
+        <mkdir dir="${build.dir}/test-results"/>
+        <!-- <taskdef name="kotlinc" classname="org.jetbrains.kotlin.ant.KotlinAntTask" classpath="${kotlin.ant.jar}"/> -->
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath>
+                <path refid="compile.classpath"/>
+                <pathelement path="${build.dir}/classes"/>
+            </classpath>
+            <formatter type="xml"/>
+            <batchtest todir="${build.dir}/test-results">
+                <fileset dir="src/jvmTest/kotlin">
+                    <include name="**/*Test.kt"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="scp" depends="build">
+        <input message="Enter SCP destination (e.g., user@host:/path):" addproperty="scp.dest"/>
+        <input message="Enter password:" addproperty="scp.password"/>
+        <exec executable="scp">
+            <arg line="${build.dir}/${ant.project.name}.jar ${build.dir}/${ant.project.name}.war ${scp.dest}"/>
+        </exec>
+    </target>
+
+    <target name="native2ascii">
+        <mkdir dir="${build.dir}/native2ascii"/>
+        <native2ascii 
+            src="src/jvmMain/resources/localization"
+            dest="${build.dir}/native2ascii"
+            encoding="UTF-8"
+            includes="*.properties"
+        />
+    </target>
+
+    <target name="xml">
+        <xmlvalidate lenient="false">
+            <fileset dir="." includes="**/*.xml"/>
+        </xmlvalidate>
+    </target>
+
+    <target name="alt">
+        <taskdef resource="org/jetbrains/kotlin/ant/antlib.xml"
+             classpath="${kotlin.ant.jar}"/>
+        <mkdir dir="${build.dir}/alt-src"/>
+        <copy todir="${build.dir}/alt-src">
+            <fileset dir="src/jvmMain/kotlin" includes="**/*.kt"/>
+        </copy>
+        <replaceregexp match="org\\.vaskozlov\\.lab3" replace="org.vaskozlov.lab3.alt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="MainKt" replace="AltMainKt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="lab3" replace="lab3alt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="Database" replace="DatabaseAlt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <kotlinc src="${build.dir}/alt-src" output="${build.dir}/classes-alt" classpathref="compile.classpath"/>
+        <jar destfile="${build.dir}/${ant.project.name}-alt.jar" basedir="${build.dir}/classes-alt">
+            <manifest>
+                <attribute name="Main-Class" value="org.vaskozlov.lab3.alt.AltMainKt"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="team">
+        <mkdir dir="${build.dir}/team"/>
+        <exec executable="git">
+            <arg line="clone https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
+        </exec>
+        <exec dir="${build.dir}/team/repo" executable="git">
+            <arg line="checkout HEAD~1"/>
+        </exec>
+        <!-- Optional: repeat with HEAD~2 -->
+        <!-- Then build and archive -->
+    </target>
+
+    <target name="env">
+        <property file="env.properties"/>
+        <java classname="org.vaskozlov.lab3.MainKt" fork="true">
+            <classpath>
+                <pathelement path="${build.dir}/classes"/>
+                <path refid="compile.classpath"/>
+            </classpath>
+            <jvmarg line="${env.jvm.args}"/>
+        </java>
+    </target>
+
+    <target name="report" depends="test">
+        <mkdir dir="${build.dir}/report-archive"/>
+        <zip destfile="${build.dir}/report-archive/test-report.zip">
+            <fileset dir="build/reports/tests/jvmTest"/>
+        </zip>
+        <exec executable="git">
+            <arg line="add ${build.dir}/report-archive/test-report.zip"/>
+        </exec>
+        <exec executable="git">
+            <arg line="commit -m 'Add JUnit test report archive'"/>
+        </exec>
+    </target>
+    
 </project>
