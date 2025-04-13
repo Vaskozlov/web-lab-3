@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="web-lab3" default="war" basedir=".">
-    <property name="kotlin.home" value="/Volumes/ramdisk/Downloads/kotlinc"/>
+    <property name="kotlin.home" value="kotlin-compiler/kotlinc"/>
     <property name="kotlin.ant.jar" value="${kotlin.home}/lib/kotlin-ant.jar"/>
     <property name="version" value="1.0"/>
     <property name="group" value="org.vaskozlov.lab3"/>
@@ -142,8 +142,8 @@
                 <attribute name="Build-Date" value="${build.time}"/>
 
                 <!-- Add checksums to MANIFEST -->
-                <attribute name="Files-MD5" value="${src.dir}/jvmMain/kotlin/**/*.md5"/>
-                <attribute name="Files-SHA1" value="${src.dir}/jvmMain/kotlin/**/*.sha1"/>
+                <attribute name="Files-MD5" value="**/*.md5"/>
+                <attribute name="Files-SHA1" value="**/*.sha1"/>
             </manifest>
 
             <!-- Add KDOC documentation to JAR -->

@@ -8,3 +8,5 @@ curl https://repo1.maven.org/maven2/jakarta/platform/jakarta.jakartaee-api/10.0.
 curl https://repo1.maven.org/maven2/org/primefaces/primefaces/14.0.6/primefaces-14.0.6-jakarta.jar > lib/primefaces-14.0.6-jakarta.jar
 curl https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.9.25/kotlin-stdlib-1.9.25.jar > lib/kotlin-stdlib-1.9.25.jar
 curl https://repo1.maven.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core/1.9.0/kotlinx-coroutines-core-1.9.0.jar > lib/kotlinx-coroutines-core-1.9.0.jar
+wget https://github.com/JetBrains/kotlin/releases/download/v2.1.20/kotlin-compiler-2.1.20.zip
+unzip kotlin-compiler-2.1.20.zip -d kotlin-compiler
