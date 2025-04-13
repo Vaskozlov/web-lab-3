@@ -100,6 +100,10 @@
         </copy>
     </target>
 
+    <target name="build" depends="compileJvm">
+
+    </target>
+
     <path id="javadoc.classpath">
         <path refid="compile.classpath"/>
         <pathelement path="${build.dir}/classes"/>
