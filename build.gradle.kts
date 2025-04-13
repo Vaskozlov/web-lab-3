@@ -1,4 +1,11 @@
-import org.apache.tools.ant.filters.EscapeUnicode
+import java.io.ByteArrayOutputStream
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.*
+import java.util.jar.Attributes
+import java.util.jar.JarFile
+import java.util.jar.Manifest
 
 plugins {
     kotlin("multiplatform") version "2.0.21"
@@ -50,9 +57,9 @@ tasks.register<Exec>("compileMainScss") {
     )
 }
 
-tasks.register<Exec>("doc") {
-    dependsOn("dokkaHtml")
-}
+//tasks.register<Exec>("doc") {
+//    dependsOn("dokkaHtml")
+//}
 
 tasks.register("xml") {
     group = "verification"
@@ -314,6 +321,176 @@ tasks.register("native2ascii") {
             from(srcDir)
             into(destDir)
             exclude("**/*.properties")
+        }
+    }
+}
+
+tasks.register("team") {
+    group = "build"
+    description = "Gets 2 previous revisions from git, builds them and packages the jars into a zip"
+    
+    val workDir = file("$buildDir/teamTask")
+    val revisionsDir = file("$buildDir/previousRevisions")
+    val outputZip = file("$buildDir/previousRevisions.zip")
+    
+    doLast {
+        workDir.deleteRecursively()
+        workDir.mkdirs()
+        
+        exec {
+            commandLine("git", "clone", projectDir.absolutePath, workDir.absolutePath)
+        }
+        
+        val revisions = ByteArrayOutputStream().use { output ->
+            exec {
+                commandLine("git", "rev-list", "--max-count=3", "HEAD")
+                workingDir = workDir
+                standardOutput = output
+            }
+            output.toString().trim().lines()
+        }
+        
+        if (revisions.size < 3) {
+            throw GradleException("Not enough revisions in git history (need at least 3)")
+        }
+        
+        // Skip the first (current) revision and take next two
+        val previousRevisions = revisions.drop(1).take(2)
+        
+        previousRevisions.forEachIndexed { index, revision ->
+            exec {
+                commandLine("git", "checkout", revision)
+                workingDir = workDir
+            }
+            
+            println("WORKING DIR $workDir")
+            
+            exec {
+                commandLine("./gradlew", "--no-daemon", "build")
+                workingDir = workDir
+            }
+            
+            val currentRevisionDir = file("${revisionsDir}_${index + 1}")
+            currentRevisionDir.mkdirs()
+            
+            copy {
+                from("$workDir/build/libs")
+                into(currentRevisionDir)
+            }
+            
+            exec {
+                commandLine("zip", "-r", "$buildDir/$revision.zip", ".")
+                workingDir = currentRevisionDir
+            }
+        }
+        
+        println("Previous revisions packaged to: $outputZip")
+    }
+}
+
+tasks.register("env") {
+    group = "application"
+    description = "Builds and runs the program in alternative environments specified in env.properties"
+    
+    // Default environment file location
+    val envFile = file("$projectDir/env.properties")
+    
+    doLast {
+        // 1. Check if environment file exists
+        if (!envFile.exists()) {
+            throw GradleException("Environment file not found: ${envFile.absolutePath}")
+        }
+        
+        // 2. Load environment properties
+        val properties = Properties().apply {
+            envFile.inputStream().use { load(it) }
+        }
+        
+        // 3. Validate required properties
+        val javaHome = properties.getProperty("java.home")
+            ?: throw GradleException("'java.home' property not specified in env.properties")
+        val jvmArgs = properties.getProperty("jvm.args", "").split(" ").filter { it.isNotBlank() }
+        val envName = properties.getProperty("env.name", "custom")
+        
+        // 4. Build the project first
+        exec {
+            commandLine("./gradlew", "build")
+        }
+        
+        // 5. Prepare Java executable path
+        val javaExec = File(javaHome).resolve("bin/java").absolutePath
+        if (!File(javaExec).exists()) {
+            throw GradleException("Java executable not found at: $javaExec")
+        }
+        
+        // 6. Run the application with specified environment
+        println("Running in environment: $envName")
+        println("Using Java: $javaHome")
+        println("JVM arguments: ${jvmArgs.joinToString(" ")}")
+        
+        exec {
+            commandLine = listOf(javaExec) +
+                    jvmArgs +
+                    listOf(
+                        "-jar",
+                        layout.buildDirectory.file("libs/${project.name}-jvm-${project.version}.jar")
+                            .get().asFile.absolutePath
+                    )
+        }
+    }
+}
+
+tasks.register("report") {
+    group = "reporting"
+    description = "Saves JUnit test reports to Git repository and creates a commit"
+    
+    // Only execute if tests pass
+    dependsOn("test")
+    mustRunAfter("test")
+    
+    doLast {
+        exec {
+            commandLine("zip", "-r", "${project.projectDir.absolutePath}/test-result.zip", ".")
+            workingDir = file("$buildDir/reports/tests")
+        }
+        
+        exec {
+            commandLine("git", "add", "${project.projectDir.absolutePath}/test-result.zip")
+        }
+        
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+        val timestamp = dateFormat.format(Date())
+        
+        exec {
+            commandLine("git", "commit", "-m", "Test report $timestamp")
+        }
+        
+        println("Test reports committed to Git repository")
+    }
+}
+tasks.register("scp")
+{
+    
+    dependsOn("build")
+    mustRunAfter("build")
+    
+    doLast {
+        
+        val scanner = Scanner(System.`in`)
+        val servers = (project.findProperty("servers") as? String)
+            ?.split(',')
+            ?.map { it.trim() }
+            ?: listOf("default.server.com")
+        
+        servers.forEach { server ->
+            val host_and_port = server.split(":")
+            val host = host_and_port.first()
+            val port = host_and_port.getOrElse(1) { "22" }
+            val dest = host_and_port.getOrElse(2) { "/" }
+            
+            exec {
+                commandLine("scp", "-P", port, "-r", "$buildDir/libs", "$host:$dest")
+            }
         }
     }
 }
