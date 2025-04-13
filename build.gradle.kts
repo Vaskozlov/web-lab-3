@@ -1,11 +1,14 @@
+import org.gradle.kotlin.dsl.jar
+import org.gradle.kotlin.dsl.java
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.*
+import java.util.jar.JarOutputStream
+import kotlin.collections.set
 import java.util.jar.Attributes
-import java.util.jar.JarFile
 import java.util.jar.Manifest
+import java.util.jar.JarEntry
 
 plugins {
     kotlin("multiplatform") version "2.0.21"
@@ -22,8 +25,18 @@ subprojects {
 
 val jsOutputDirectory = file("$projectDir/src/jvmMain/webapp/resources/js")
 
+
 repositories {
     mavenCentral()
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+dependencies {
+    // Other dependencies.
+    testImplementation(kotlin("test"))
 }
 
 buildscript {
@@ -193,8 +206,9 @@ kotlin {
 
 tasks.withType<Test> {
     reports {
+        junitXml.outputLocation.set(file("${buildDir}/reports/xml"))
         junitXml.required.set(true) // Enable XML test reports
-        junitXml.outputLocation.set(file("${layout.buildDirectory}/test-results")) // Set the output directory
+        junitXml.isOutputPerTestCase = false
     }
 }
 
@@ -450,8 +464,8 @@ tasks.register("report") {
     
     doLast {
         exec {
-            commandLine("zip", "-r", "${project.projectDir.absolutePath}/test-result.zip", ".")
-            workingDir = file("$buildDir/reports/tests")
+            commandLine("zip", "-o", "-r", "${project.projectDir.absolutePath}/test-result.zip", ".")
+            workingDir = file("${buildDir}/reports/xml")
         }
         
         exec {
@@ -462,7 +476,7 @@ tasks.register("report") {
         val timestamp = dateFormat.format(Date())
         
         exec {
-            commandLine("git", "commit", "-m", "Test report $timestamp")
+            commandLine("git", "commit", "--allow-empty", "-m", "Test report $timestamp")
         }
         
         println("Test reports committed to Git repository")
@@ -492,5 +506,61 @@ tasks.register("scp")
                 commandLine("scp", "-P", port, "-r", "$buildDir/libs", "$host:$dest")
             }
         }
+    }
+}
+
+tasks.register("doc") {
+    group = "documentation"
+    description = "Generates KDoc using Dokka, calculates MD5 and SHA-1 for project files, and updates MANIFEST.MF"
+    
+    dependsOn("dokkaHtml")
+    mustRunAfter("dokkaHtml")
+    
+    val dokkaOutputDir = file("$buildDir/dokka")
+    val jarFile = file("$buildDir/libs/${project.name}-${project.version}-kdoc.jar")
+    
+    doLast {
+        
+        // 2. Calculate MD5 and SHA-1 for project files
+        val files = fileTree(projectDir) {
+            include("**/*")
+            exclude("**/build/**", "**/.gradle/**")
+        }
+        
+        val md5Digest = MessageDigest.getInstance("MD5")
+        val sha1Digest = MessageDigest.getInstance("SHA-1")
+        
+        files.forEach { file ->
+            if (file.isFile) {
+                val bytes = file.readBytes()
+                md5Digest.update(bytes)
+                sha1Digest.update(bytes)
+            }
+        }
+        
+        val md5Hash = md5Digest.digest().joinToString("") { "%02x".format(it) }
+        val sha1Hash = sha1Digest.digest().joinToString("") { "%02x".format(it) }
+        
+        // 3. Update MANIFEST.MF
+        val manifest = Manifest()
+        manifest.mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
+        manifest.mainAttributes[Attributes.Name("MD5-Hash")] = md5Hash
+        manifest.mainAttributes[Attributes.Name("SHA1-Hash")] = sha1Hash
+        
+        // 4. Create KDoc JAR
+        JarOutputStream(jarFile.outputStream(), manifest).use { jar ->
+            dokkaOutputDir.walkTopDown().forEach { file ->
+                if (file.isFile) {
+                    val entryName = dokkaOutputDir.toPath().relativize(file.toPath()).toString()
+                    jar.putNextEntry(JarEntry(entryName))
+                    jar.write(file.readBytes())
+                    jar.closeEntry()
+                }
+            }
+        }
+        
+        println("KDoc JAR created: ${jarFile.absolutePath}")
+        println("MD5: $md5Hash")
+        println("SHA-1: $sha1Hash")
     }
 }
