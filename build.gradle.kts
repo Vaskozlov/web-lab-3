@@ -1,3 +1,7 @@
+import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.implementation
+import org.gradle.kotlin.dsl.kotlin
+
 plugins {
     kotlin("multiplatform") version "2.0.21"
     id("war")
@@ -15,6 +19,12 @@ val jsOutputDirectory = file("$projectDir/src/jvmMain/webapp/resources/js")
 
 repositories {
     mavenCentral()
+}
+
+buildscript {
+    dependencies {
+        classpath("xerces:xercesImpl:2.12.2")
+    }
 }
 
 tasks.register<Exec>("compileCommonScss") {
@@ -164,8 +174,20 @@ kotlin {
                 implementation("org.primefaces:primefaces:14.0.6:jakarta")
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit")) // Add JUnit support for JVM tests
+            }
+        }
+        
         val jsIntroPageMain by getting
         val jsMainPageMain by getting
+    }
+}
+
+tasks.withType<Test> {
+    reports {
+        junitXml.required.set(true) // Enable XML test reports
+        junitXml.outputLocation.set(file("${layout.buildDirectory}/test-results")) // Set the output directory
     }
 }
