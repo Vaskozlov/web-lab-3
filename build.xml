@@ -33,6 +33,7 @@
             <include name="junit-*.jar"/>
             <include name="hamcrest-core-*.jar"/>
             <include name="kotlin-test-junit-*.jar"/>
+            <include name="kotlin-test-*.jar"/>
         </fileset>
     </path>
 
@@ -272,14 +273,14 @@
             <arg line="clone --branch ant https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
         </exec>
 
-        <exec executable="chmod">
+        <exec dir="${build.dir}/team/repo" executable="chmod">
             <arg line="+x install-libs.sh"/>
         </exec>
 
-        <exec executable="./install-libs.sh"></exec>
+        <exec dir="${build.dir}/team/repo" executable="./install-libs.sh"></exec>
 
-        <exec executable="./gradlew">
-            <arg line="init"/>
+        <exec dir="${build.dir}/team/repo" executable="npm">
+            <arg line="install typescript"/>
         </exec>
 
         <!-- Обрабатываем первую ревизию HEAD~1 -->
@@ -288,7 +289,8 @@
             <arg line="checkout HEAD~1"/>
         </exec>
         <exec dir="${build.dir}/team/repo" executable="ant">
-            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc jar"/>
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc"/>
+            <arg value="jar"/>
         </exec>
         <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out1/web-lab3-head-1.jar"/>
 
@@ -298,7 +300,8 @@
             <arg line="checkout HEAD~2"/>
         </exec>
         <exec dir="${build.dir}/team/repo" executable="ant">
-            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc jar"/>
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc"/>
+            <arg value="jar"/>
         </exec>
         <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out2/web-lab3-head-2.jar"/>
 
@@ -327,7 +330,7 @@
     <target name="report" depends="test">
         <mkdir dir="${build.dir}/report-archive"/>
         <zip destfile="${build.dir}/report-archive/test-report.zip">
-            <fileset dir="build/reports/tests/jvmTest"/>
+            <fileset dir="${build.dir}/test-results"/>
         </zip>
         <exec executable="git">
             <arg line="add ${build.dir}/report-archive/test-report.zip"/>
