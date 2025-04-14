@@ -28,6 +28,12 @@
             <include name="kotlin-stdlib-*.jar"/>
             <include name="kotlinx-coroutines-core-*.jar"/>
             <include name="annotations-*.jar"/>
+
+            <!-- JUnit and Kotlin test -->
+            <include name="junit-*.jar"/>
+            <include name="hamcrest-core-*.jar"/>
+            <include name="kotlin-test-junit-*.jar"/>
+            <include name="kotlin-test-*.jar"/>
         </fileset>
     </path>
 
@@ -182,4 +188,156 @@
     <target name="clean">
         <delete dir="${build.dir}"/>
     </target>
+
+    <target name="compile" depends="compileJvm"/>
+
+    <target name="compileTests" depends="compileJvm">
+        <kotlinc src="${src.dir}/jvmTest/kotlin"
+                output="${build.dir}/classes-test"
+                classpathref="compile.classpath"/>
+    </target>
+
+    <target name="test" depends="compileTests">
+        <mkdir dir="${build.dir}/test-results"/>
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath>
+                <path refid="compile.classpath"/>
+                <pathelement path="${build.dir}/classes-test"/>
+            </classpath>
+            <formatter type="xml"/>
+            <batchtest todir="${build.dir}/test-results">
+                <fileset dir="${build.dir}/classes-test">
+                    <include name="**/*Test.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="scp" depends="build">
+        <input message="Enter SCP destination (e.g., user@host:/path):" addproperty="scp.dest"/>
+        <input message="Enter password:" addproperty="scp.password"/>
+        <exec executable="scp">
+            <arg line="${build.dir}/${ant.project.name}.jar ${build.dir}/${ant.project.name}.war ${scp.dest}"/>
+        </exec>
+    </target>
+
+    <target name="native2ascii">
+        <mkdir dir="${build.dir}/native2ascii"/>
+        <native2ascii 
+            src="src/jvmMain/resources/localization"
+            dest="${build.dir}/native2ascii"
+            encoding="UTF-8"
+            includes="*.properties"
+        />
+    </target>
+
+    <target name="xml">
+        <xmlvalidate lenient="true">
+            <fileset dir="." includes="**/*.xml"/>
+        </xmlvalidate>
+    </target>
+
+    <target name="alt">
+        <taskdef resource="org/jetbrains/kotlin/ant/antlib.xml"
+             classpath="${kotlin.ant.jar}"/>
+        <mkdir dir="${build.dir}/alt-src"/>
+        <copy todir="${build.dir}/alt-src">
+            <fileset dir="src/jvmMain/kotlin" includes="**/*.kt"/>
+        </copy>
+        <replaceregexp match="org\\.vaskozlov\\.lab3" replace="org.vaskozlov.lab3.alt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="MainKt" replace="AltMainKt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="lab3" replace="lab3alt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <replaceregexp match="Database" replace="DatabaseAlt" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.kt"/>
+        </replaceregexp>
+        <kotlinc src="${build.dir}/alt-src" output="${build.dir}/classes-alt" classpathref="compile.classpath"/>
+        <jar destfile="${build.dir}/${ant.project.name}-alt.jar" basedir="${build.dir}/classes-alt">
+            <manifest>
+                <attribute name="Main-Class" value="org.vaskozlov.lab3.alt.AltMainKt"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="team">
+        <!-- Создаём временную папку для работы -->
+        <mkdir dir="${build.dir}/team"/>
+
+        <!-- Клонируем репозиторий -->
+        <exec executable="git">
+            <arg line="clone --branch ant https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
+        </exec>
+
+        <exec dir="${build.dir}/team/repo" executable="chmod">
+            <arg line="+x install-libs.sh"/>
+        </exec>
+
+        <exec dir="${build.dir}/team/repo" executable="./install-libs.sh"></exec>
+
+        <exec dir="${build.dir}/team/repo" executable="npm">
+            <arg line="install typescript"/>
+        </exec>
+
+        <!-- Обрабатываем первую ревизию HEAD~1 -->
+        <mkdir dir="${build.dir}/team/out1"/>
+        <exec dir="${build.dir}/team/repo" executable="git">
+            <arg line="checkout HEAD~1"/>
+        </exec>
+        <exec dir="${build.dir}/team/repo" executable="ant">
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc"/>
+            <arg value="jar"/>
+        </exec>
+        <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out1/web-lab3-head-1.jar"/>
+
+        <!-- Обрабатываем вторую ревизию HEAD~2 -->
+        <mkdir dir="${build.dir}/team/out2"/>
+        <exec dir="${build.dir}/team/repo" executable="git">
+            <arg line="checkout HEAD~2"/>
+        </exec>
+        <exec dir="${build.dir}/team/repo" executable="ant">
+            <arg value="-Dkotlin.home=kotlin-compiler/kotlinc"/>
+            <arg value="jar"/>
+        </exec>
+        <copy file="${build.dir}/team/repo/build-ant/web-lab3.jar" tofile="${build.dir}/team/out2/web-lab3-head-2.jar"/>
+
+        <!-- Упаковка в zip -->
+        <mkdir dir="${build.dir}/team/final"/>
+        <zip destfile="${build.dir}/team/final/team-builds.zip">
+            <fileset dir="${build.dir}/team/out1" includes="**/*.jar"/>
+            <fileset dir="${build.dir}/team/out2" includes="**/*.jar"/>
+        </zip>
+
+        <echo message="Готово! Архив находится по пути: ${build.dir}/team/final/team-builds.zip"/>
+    </target>
+
+
+    <target name="env">
+        <property file="env.properties"/>
+        <java classname="org.vaskozlov.lab3.MainKt" fork="true">
+            <classpath>
+                <pathelement path="${build.dir}/classes"/>
+                <path refid="compile.classpath"/>
+            </classpath>
+            <jvmarg line="${env.jvm.args}"/>
+        </java>
+    </target>
+
+    <target name="report" depends="test">
+        <mkdir dir="${build.dir}/report-archive"/>
+        <zip destfile="${build.dir}/report-archive/test-report.zip">
+            <fileset dir="${build.dir}/test-results"/>
+        </zip>
+        <exec executable="git">
+            <arg line="add ${build.dir}/report-archive/test-report.zip"/>
+        </exec>
+        <exec executable="git">
+            <arg line="commit -m 'Add JUnit test report archive'"/>
+        </exec>
+    </target>
+    
 </project>
