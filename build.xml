@@ -270,7 +270,7 @@
 
         <!-- Клонируем репозиторий -->
         <exec executable="git">
-            <arg line="clone --branch ant https://github.com/Vaskozlov/web-lab-3.git ${build.dir}/team/repo"/>
+            <arg line="clone --branch ant . ${build.dir}/team/repo"/>
         </exec>
 
         <exec dir="${build.dir}/team/repo" executable="chmod">
@@ -336,7 +336,7 @@
             <arg line="add ${build.dir}/report-archive/test-report.zip"/>
         </exec>
         <exec executable="git">
-            <arg line="commit -m 'Add JUnit test report archive'"/>
+            <arg line="commit --allow-empty -m 'Add JUnit test report archive'"/>
         </exec>
     </target>
     
