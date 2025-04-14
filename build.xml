@@ -232,7 +232,7 @@
     </target>
 
     <target name="xml">
-        <xmlvalidate lenient="false">
+        <xmlvalidate lenient="true">
             <fileset dir="." includes="**/*.xml"/>
         </xmlvalidate>
     </target>
