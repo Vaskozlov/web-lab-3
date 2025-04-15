@@ -44,13 +44,8 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-src/jvmMain/webapp/resources/js
-src/jvmMain/webapp/resources/css/*.css
-src/jvmMain/webapp/resources/css/*.map
-
 lib
 build-ant
 build
 kotlin-compiler-2.1.20.zip
 kotlin-compiler
-src/jvmMain/kotlin
