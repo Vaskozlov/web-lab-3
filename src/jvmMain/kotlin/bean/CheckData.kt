@@ -1,5 +1,6 @@
 package org.vaskozlov.lab3.bean
 
+import jakarta.annotation.PostConstruct
 import jakarta.enterprise.context.SessionScoped
 import jakarta.faces.context.FacesContext
 import jakarta.inject.Named
@@ -7,6 +8,7 @@ import org.primefaces.event.SlideEndEvent
 import org.vaskozlov.lab3.core.IsInAreaService
 import org.vaskozlov.lab3.database
 import java.io.Serializable
+import javax.management.MBeanServerInvocationHandler
 import kotlin.system.measureNanoTime
 
 @Named
@@ -19,6 +21,7 @@ class CheckData : Serializable {
     var r: Double = 1.0
     var inArea: Boolean = false
     var executionTimeNs: Long = 0
+    
     
     constructor()
     
@@ -50,6 +53,11 @@ class CheckData : Serializable {
         
         database.saveCheckResult(this)
         getCurrentResultTable().results.add(this.copy())
+        
+        val mbs = java.lang.management.ManagementFactory.getPlatformMBeanServer()
+        val objectName = javax.management.ObjectName("org.vaskozlov.lab3:type=PointsMXBean")
+        
+        mbs.invoke(objectName, "increaseCount", null, null);
     }
     
     fun clearTable() {
